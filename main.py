@@ -66,7 +66,7 @@ daily_data = all_data.groupby(["date", "turbine_id"])["power_output"].agg(["min"
 
 print(daily_data.head())
 
-# finding avearge 
+# finding average 
 
 daily_data["daily_mean"] = daily_data.groupby("date")["mean"].transform("mean")
 

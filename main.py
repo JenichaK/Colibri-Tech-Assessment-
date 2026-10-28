@@ -1,5 +1,6 @@
-import pandas as pd 
-print("Colibri assessment starting!")
+import pandas as pd
+
+# Loading all three files into one dataset
 
 file1 = pd.read_csv("data_group_1.csv")
 file2 = pd.read_csv("data_group_2.csv")
@@ -7,122 +8,101 @@ file3 = pd.read_csv("data_group_3.csv")
 
 all_data = pd.concat([file1, file2, file3], ignore_index=True)
 
-print(all_data.head())
+
 print(all_data.shape)
 
-print(all_data.info())
+print(all_data.head())
+
+# Checking any missing values
+
 print(all_data.isnull().sum())
 
-print("Duplicate rows:", all_data.duplicated().sum())
-print("Duplicate turbine-time readings:", all_data.duplicated(subset=["timestamp", "turbine_id"]).sum())
+# Checking for duplicate rows
 
-print("Minimum wind speed:", all_data["wind_speed"].min())
-print("Maximum wind speed:", all_data["wind_speed"].max())
+print(all_data.duplicated().sum())
 
-print("Minimum wind direction:", all_data["wind_direction"].min())
-print("Maximum wind direction:", all_data["wind_direction"].max())
+print(all_data.duplicated(subset=["timestamp", "turbine_id"]).sum())
 
-print("Minimum power output:", all_data["power_output"].min())
-print("Maximum power output:", all_data["power_output"].max())
+# checking wind speed to see if there is any negative value 
 
+print((all_data["wind_speed"] < 0).sum())
 
-# Check the date range covered by the data
+# checking wind direction between 0 and 359
+
+print(((all_data["wind_direction"] < 0) | (all_data["wind_direction"] > 359)).sum())
+
+# checking for negative power output value 
+
+print((all_data["power_output"] < 0).sum())
+
+# checking for min and max value to see if there's any impossible values
+
+print(all_data["power_output"].min())
+print(all_data["power_output"].max())
+
+# checking timestamps
+
 all_data["timestamp"] = pd.to_datetime(all_data["timestamp"])
 
-print("Earliest timestamp:", all_data["timestamp"].min())
-print("Latest timestamp:", all_data["timestamp"].max())
+print(all_data["timestamp"].dtype)
 
+# checking ealiest and latest timestamp
+print(all_data["timestamp"].min())
+print(all_data["timestamp"].max())
 
-# Count how many readings each turbine has
+# checking readings for each turbine
 print(all_data["turbine_id"].value_counts().sort_index())
 
+#checking each hour is recorded per turbine
+print(all_data.groupby("turbine_id")["timestamp"].nunique())
 
-# Check for physically impossible wind measurements
-print("Negative wind speeds:", (all_data["wind_speed"] < 0).sum())
+#checking turbines performance by power output
 
-print(
-    "Invalid wind directions:",
-    ((all_data["wind_direction"] < 0) |
-     (all_data["wind_direction"] > 359)).sum()
-)
-
-
-# Check for negative power output
-print(
-    "Negative power readings:",
-    (all_data["power_output"] < 0).sum()
-)
-
-
-# Calculate the average power output for each turbine
-print(all_data.groupby("turbine_id")["power_output"].mean())
-
-
-# Extract the date from each timestamp
 all_data["date"] = all_data["timestamp"].dt.date
 
-# Calculate daily power statistics for each turbine
-daily_summary = all_data.groupby(
-    ["date", "turbine_id"]
-)["power_output"].agg(
-    ["min", "max", "mean"]
-).reset_index()
+print(all_data[["timestamp", "date"]].head())
 
-print(daily_summary.head(10))
-print("Number of daily turbine summaries:", len(daily_summary))
+daily_data = all_data.groupby(["date", "turbine_id"])["power_output"].agg(["min", "max", "mean"]).reset_index()
 
+print(daily_data.head())
 
-# Calculate the daily mean and standard deviation across turbines
-daily_summary["daily_mean"] = daily_summary.groupby("date")["mean"].transform("mean")
+# finding avearge 
 
-daily_summary["daily_std"] = daily_summary.groupby("date")["mean"].transform("std")
+daily_data["daily_mean"] = daily_data.groupby("date")["mean"].transform("mean")
 
-print(daily_summary.head(10))
+# working out standard deviation 
 
+daily_data["daily_std"] = daily_data.groupby("date")["mean"].transform("std")
 
-# Flag turbine averages that are more than 2 standard deviations from the daily mean
-daily_summary["is_anomaly"] = (
-    (daily_summary["mean"] - daily_summary["daily_mean"]).abs()
-    > 2 * daily_summary["daily_std"]
-)
+# finding any anomalies
 
-# Display the number of flagged anomalies
-print("Number of flagged anomalies:", daily_summary["is_anomaly"].sum())
+daily_data["is_anomaly"] = abs(daily_data["mean"] - daily_data["daily_mean"]) > 2 * daily_data["daily_std"]
 
-# Display the rows that were flagged
-print(daily_summary[daily_summary["is_anomaly"]])
+print(daily_data[daily_data["is_anomaly"]])
+
+daily_data.to_csv("daily_summary1.csv", index=False)
+
+all_data.to_csv("cleaned_data1.csv", index=False)
 
 
-# Save the combined dataset to a CSV file
-all_data.to_csv("cleaned_data.csv", index=False)
-
-# Save the daily statistics and anomaly flags to a CSV file
-daily_summary.to_csv("daily_summary.csv", index=False)
-
-print("Files saved successfully!")
 
 
-# Check for missing hourly timestamps for each turbine
-expected_hours = 31 * 24
-
-hourly_counts = all_data.groupby("turbine_id")["timestamp"].nunique()
-
-print("Expected hourly readings per turbine:", expected_hours)
-print("Actual unique hourly readings per turbine:")
-print(hourly_counts)
-
-print("Turbines with missing hourly readings:", (hourly_counts < expected_hours).sum())
 
 
-# Check that the saved CSV files can be opened
-saved_data = pd.read_csv("cleaned_data.csv")
-saved_summary = pd.read_csv("daily_summary.csv")
 
-print("Saved data shape:", saved_data.shape)
-print("Saved data columns:", saved_data.columns.tolist())
 
-print("Saved summary shape:", saved_summary.shape)
-print("Saved summary columns:", saved_summary.columns.tolist())
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

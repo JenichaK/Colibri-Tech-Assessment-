@@ -1,9 +1,10 @@
 # Wind Turbine Data Analysis
 
-## Project Overview
-This project analyses hourly wind turbine data for 15 turbines over March 2022. The data is provided across three CSV files, which are combined into a single dataset using Python and pandas.
+## What This Project Checks
 
-The project checks data quality, calculates daily power output statistics for each turbine, identifies potential anomalies using a two-standard-deviation rule, and exports the results to CSV files.
+This project checks wind turbine data for March 2022 to see if there are any missing readings, duplicate records or values that don't look correct. It combines data from three CSV files into one dataset and checks the wind speed, wind direction and power output.
+
+It also looks at each turbine's power output each day by calculating the minimum, maximum and average. It then compares each turbine's daily average with the overall average for that day to identify turbines with unusually high or low power output. The results are saved into CSV files for further review.
 
 ## Requirements
 
@@ -12,54 +13,36 @@ The project checks data quality, calculates daily power output statistics for ea
 
 ## How to Run
 
-1. Download or clone the project repository.
-2. Ensure the three input CSV files are in the same folder as `main.py`.
-3. Ensure Python and pandas are installed.
-4. Run the script using VS Code or a terminal.
+1. Download the project files from GitHub.
+2. Make sure the three CSV files are in the same folder as `main.py`.
+3. Open the folder in Terminal.
+4. Install pandas if you haven't already:
+5. Run the code:
 
-The script reads the three input CSV files, combines them, performs data quality checks, calculates daily statistics, identifies potential anomalies, and saves the output files.
+The results will be saved as CSV files in the same folder.
 
 ## Output Files
 
-- `cleaned_data.csv`: Combined hourly turbine data with an additional date column.
-- `daily_summary.csv`: Daily minimum, maximum, and average power output for each turbine, daily mean and standard deviation, and anomaly flags.
+1. cleaned_data1.csv contains the combined data from all three files, including the new date column.
+2. daily_summary1.csv contains each turbine's daily minimum, maximum and average power output, plus the daily mean, standard deviation and anomaly flag.
 
 
 
-## Problems Found and Actions Taken
+## Problems Found and how I dealt with them
 
-The dataset was checked for data quality issues before analysis.
+I checked the data for the following problems 
 
-| Check | Problem found | Action taken |
-|---|---|---|
-| Missing values | None found | No action required |
-| Duplicate rows | None found | No action required |
-| Duplicate turbine-time readings | None found | No action required |
-| Missing hourly timestamps | None found | No action required |
-| Negative wind speeds | None found | No action required |
-| Invalid wind directions | None found | No action required |
-| Negative power output | None found | No action required |
-| Unusual daily power averages | 17 potential anomalies flagged | Flagged for further investigation; not removed |
+1. Missing values: no missing values were found, so I did not need to remove or fill any data.
+2. Duplicate data: no duplicate rows or repeated for the same turbine and timestamp were found, so no records were removed
+3. Negative wind speed: no negative speed was found 
+4. Invalid wind direction: I checked the wind direction was between 0 and 359 degrees and no invalid values were found.
+5. Power output: I checked for negative power output and looked at the minimum and maximum values. The values ranged from 1.5 MW to 4.5 MW. No negative values were found however, the turbines full capacity was not defined so I could not cofirm the maximum physically possible output. 
+6. Timestamps: I converted the timestamps (str) into a date and time format so I could group the readings by day. I also verified the date range and the number of readings for each one.
+7. Unusual power output: I compared each turbines daily average power output with the average of all turbines for that day. If a turbines output was two standard deviations away from the daily average, I flagged it. I found 17 anomalies and kept them in the summary for further investigation rather than deleting them.
 
-The timestamp column was converted into a datetime format, and a separate date column was created to support daily analysis.
+### Flagged Turbine & Day Combinations
 
-The recorded power output ranged from 1.5 to 4.5. The maximum rated capacity of the turbines was not provided, so an upper physical limit could not be verified.
-
-
-## Daily Statistics and Anomaly Detection
-
-Daily statistics were calculated for each turbine using the hourly power output readings. The minimum, maximum, and mean power output were calculated for each turbine on each day.
-
-For anomaly detection, the mean and standard deviation of the 15 turbines' daily average power outputs were calculated separately for each day.
-
-A turbine day was flagged as a potential anomaly when its daily average power output was more than two standard deviations away from that day's overall mean. Absolute differences were used so that unusually high and unusually low averages could both be identified.
-
-This method identified 17 potential anomalies during March 2022. These were flagged for further investigation rather than automatically removed from the dataset.
-
-
-### Flagged Turbine-Day Combinations
-
-The following turbine-day combinations were flagged as potential anomalies:
+These are the 17 anomalies in March 2022 with their date and turbine id: 
 
 | Date | Turbine ID |
 |---|---:|
@@ -81,21 +64,21 @@ The following turbine-day combinations were flagged as potential anomalies:
 | 28 March 2022 | 3 |
 | 29 March 2022 | 9 |
 
-These observations exceeded the two-standard-deviation threshold. They were retained in the dataset because a statistical anomaly does not necessarily indicate faulty sensor readings.
+These results does not mean that the turbines are faulty. They show which turbines had an average power output that was unusually different from the others on that day.
 
 
-## Limitations and Assumptions
+## Limitations 
 
-- The dataset covers March 2022 and contains hourly readings for 15 turbines.
-- Each turbine was expected to have 744 hourly readings, and the checks confirmed that all expected hourly timestamps were present.
-- The two standard deviation rule was used to identify potential anomalies. Flagged values are not necessarily errors and require further investigation.
-- The turbines' rated power capacity was not provided, so the maximum physically possible power output could not be verified.
-- The analysis uses the available data and does not establish the cause of any flagged anomaly.
+1. Wind direction should be between 0 degrees and 359 degrees. 
+2. Negative wind speed and negative power output were treated as invalid if found. 
+3. Turbines with the unusual power output were flagged for further testing rather than deleted.
+4. The maximum possible power output of the turbines could not be confirmed because the tubines capacity output was not provided.
+
 
 ## Future Improvements
 
-- Confirm the rated capacity of each turbine and validate power output against it.
-- Investigate the 17 flagged turbine day combinations using additional operational information.
-- Add automated tests to check data quality and validate the analysis.
-
+If I had more time I would:
+1. Investigate the flagged results to see why their power output was different.
+2. Check the tubine capacity limits to identify any physically impossible output values. 
+3. Check that every hourly reading is present for each turbine.
 
